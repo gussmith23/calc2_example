@@ -1,10 +1,15 @@
 `ifndef MONITOR_SV
 `define MONITOR_SV
+
 `include "result.sv"
+`include "monitor_callback.sv"
+
+typedef MonitorCallback;
 
 class Monitor;
   virtual Port_ifc.Monitor port_ifc;
   int port;
+  MonitorCallback callback_queue[$];
   function new(virtual Port_ifc.Monitor port_ifc, int port);
     this.port_ifc =port_ifc;
     this.port = port;
@@ -17,8 +22,8 @@ task Monitor::run();
   forever begin
     while (port_ifc.cbm.resp_out === 0) @(port_ifc.cbm);
     result = new(port_ifc.cbm.resp_out, port_ifc.cbm.data_out, port_ifc.cbm.tag_out);
-    $display("[port %1.d] Result out: resp = %b, data = %b (%d), tag = %b",
-        port, result.resp, result.data, result.data, result.tag);
+
+    foreach (callback_queue[i]) callback_queue[i].result_received(this, result);
 
     // Wait a cycle. This ensures that we don't re-catch this same packet! That
     // is, before this statement, we're still in a cycle where resp_out!=0. So 

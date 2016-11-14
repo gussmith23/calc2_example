@@ -4,6 +4,9 @@
 `include "generator.sv"
 `include "driver.sv"
 `include "monitor.sv"
+`include "scoreboard.sv"
+`include "scoreboard_monitor_callback.sv"
+`include "scoreboard_driver_callback.sv"
 
 class Environment;
   mailbox gen2drv[];
@@ -13,6 +16,7 @@ class Environment;
   Generator gen[];
   Driver drv[];
   Monitor mon[];
+  Scoreboard scoreboard;
   
   extern function new(virtual Port_ifc.Driver port_ifc_d[0:3],
       virtual Port_ifc.Monitor port_ifc_m[0:3]);
@@ -44,6 +48,21 @@ function void Environment::build();
   foreach (mon[i]) begin
     mon[i] = new(port_ifc_m[i], i);
   end
+
+  scoreboard = new();
+
+  // Connect monitors to scoreboard.
+  begin
+    ScoreboardMonitorCallback smc = new(scoreboard);
+    foreach(mon[i]) mon[i].callback_queue.push_back(smc);
+  end
+
+  // Connect drivers to scoreboard.
+  begin
+    ScoreboardDriverCallback sdc = new(scoreboard);
+    foreach(drv[i]) drv[i].callback_queue.push_back(sdc);
+  end
+
 endfunction : build
 
 task Environment::run();
