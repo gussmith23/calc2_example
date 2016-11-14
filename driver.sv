@@ -53,8 +53,11 @@ task Driver::run();
     @(port_ifc.cbd);
     port_ifc.cbd.data_in <= 0;
 
+    // Send the command out to the scoreboard and anyone else who
+    // might be listening.
     foreach (callback_queue[i]) callback_queue[i].command_sent(this, command);
 
+    // Now we remove the item from the mailbox and signal the generator.
     gen2drv.get(command);
     ->drv2gen;
   end
