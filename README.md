@@ -5,3 +5,9 @@ compile the Verilog separately from the SystemVerilog:
 vlog *.v
 vlog *.sv
 ```
+
+Then, run the testbench:
+
+```bash
+vsim -c top -do "run -all"
+```
