@@ -11,6 +11,7 @@
 class Environment;
   mailbox gen2drv[];
   event drv2gen[];
+  mailbox mon2drv[];
   virtual Port_ifc.Driver port_ifc_d[];
   virtual Port_ifc.Monitor port_ifc_m[];
   Generator gen[];
@@ -37,16 +38,18 @@ function void Environment::build();
   drv = new[4];
   gen2drv = new[4];
   drv2gen = new[4];
+  mon2drv = new[4];
 
   foreach (gen[i]) begin
     gen2drv[i] = new();
+    mon2drv[i] = new();
     gen[i] = new(gen2drv[i], drv2gen[i]);
-    drv[i] = new(gen2drv[i], drv2gen[i], port_ifc_d[i], i);
+    drv[i] = new(gen2drv[i], drv2gen[i], port_ifc_d[i], i, mon2drv[i]);
   end
 
   mon = new[4];
   foreach (mon[i]) begin
-    mon[i] = new(port_ifc_m[i], i);
+    mon[i] = new(port_ifc_m[i], i, mon2drv[i]);
   end
 
   scoreboard = new();
@@ -66,7 +69,12 @@ function void Environment::build();
 endfunction : build
 
 task Environment::run();
+
   int num_gen_running = 4;
+  int j;
+
+  // Put tags into mailbox.
+  foreach (mon2drv[i]) for (j=0; j<4; j++) mon2drv[i].put(j);
 
   foreach (gen[i]) begin
     int j = i;
