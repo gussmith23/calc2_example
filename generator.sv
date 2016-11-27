@@ -18,9 +18,16 @@ function Generator::new(input mailbox gen2drv, input event drv2gen);
 endfunction : new
 
 task Generator::run();
-  Command command = new(1, 1, 1, 0);  
-  gen2drv.put(command);
-  @drv2gen;
+  int i;
+  Command command;
+  
+  for (i = 0; i < 3; i++) begin
+    command = new;
+    command.randomize();
+    gen2drv.put(command);
+    @drv2gen;
+  end
+
 endtask : run
 
 `endif

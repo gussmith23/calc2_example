@@ -29,25 +29,26 @@ function void Scoreboard::save_expected(Driver driver, Command command);
   Expectation e;
 
   begin
-    $display("[port %1d] Command in: cmd = %b, operands = %b (%d), %b (%d), tag = %b",
-        driver.port, command.cmd, command.data1, command.data1, command.data2, command.data2,
-        command.tag);
+    //$display("[port %1d] Command in: cmd = %b, operands = %b (%d), %b (%d), tag = %b",
+    //    driver.port, command.cmd, command.data1, command.data1, command.data2, command.data2,
+    //    command.tag);
 
     case(command.cmd)
       1:  begin
             expected_data = command.data1 + command.data2;
-            expected_resp = 1;
+            expected_resp = (command.data1 + command.data2 + 64'b0 > 32'hFFFFFFFF) 
+                ? 2 : 1;
           end
       2:  begin
             expected_data = command.data1 - command.data2;
-            expected_resp = 1;
+            expected_resp = (command.data1 < command.data2) ? 2 : 1;
           end
       5:  begin
-            expected_data = command.data1 << command.data2;
+            expected_data = command.data1 << command.data2[27:31];
             expected_resp = 1;
           end
       6:  begin
-            expected_data = command.data1 >> command.data2;
+            expected_data = command.data1 >> command.data2[27:31];
             expected_resp = 1;
           end
       default: begin
@@ -75,9 +76,10 @@ endfunction
 
 function void Scoreboard::check_actual(Monitor monitor, Result result);
   int index = -1, i = 0;
+  Expectation e;
   begin
-    $display("[port %1.d] Result out: resp = %b, data = %b (%d), tag = %b",
-        monitor.port, result.resp, result.data, result.data, result.tag);
+    //$display("[port %1.d] Result out: resp = %b, data = %b (%d), tag = %b",
+    //    monitor.port, result.resp, result.data, result.data, result.tag);
     
     for (i = 0; i < port_queues[monitor.port].size(); i++) 
       if (port_queues[monitor.port][i].command.tag == result.tag)
@@ -89,8 +91,22 @@ function void Scoreboard::check_actual(Monitor monitor, Result result);
       return;
     end
 
+    e = port_queues[monitor.port][index];
+
+    assert(((e.expected_resp == 1) -> (result.data == e.expected_data)) 
+        && result.resp == e.expected_resp)
+    else begin
+      $error("Incorrect response!");
+      $display("Command: cmd = %b, data1 = %d, data2 = %d, tag = %d",
+          e.command.cmd, e.command.data1,
+          e.command.data2, e.command.tag);
+      $display("Expected: data = %d, resp = %b",
+          e.expected_data, e.expected_resp);
+      $display("Got: data = %d, resp = %b",
+          result.data, result.resp);
+    end
+
     port_queues[monitor.port].delete(index);
-     
 
   end
 endfunction

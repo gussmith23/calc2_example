@@ -48,10 +48,10 @@ task Driver::run();
     gen2drv.peek(command);
 
     // Get an available tag.
-    $display(mon2drv);
     mon2drv.get(tag);  
 
-    @(port_ifc.cbd);
+    repeat(command.cycle_delay) @(port_ifc.cbd);
+
     port_ifc.cbd.cmd_in <= command.cmd; 
     port_ifc.cbd.data_in <= command.data1;
     port_ifc.cbd.tag_in <= tag;
