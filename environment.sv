@@ -73,7 +73,10 @@ task Environment::run();
   int num_gen_running = 4;
   int j;
 
-  // Put tags into mailbox.
+  // Put tags into mailbox in order: 0 1 2 3.
+  // Note - the order in which the tags appear in the mailbox
+  // will be the order in which the tags are used for the rest
+  // of the simulation.
   foreach (mon2drv[i]) for (j=0; j<4; j++) mon2drv[i].put(j);
 
   foreach (gen[i]) begin
@@ -103,7 +106,7 @@ task Environment::run();
   join_any
   disable timeout_block;
 
-  repeat(1_000) @(port_ifc_d[0].cbd);
+  repeat(7_000) @(port_ifc_d[0].cbd);
 endtask : run
 
 `endif

@@ -19,11 +19,15 @@ endfunction : new
 
 task Generator::run();
   int i;
+  int num_trials = 6;
   Command command;
   
-  for (i = 0; i < 3; i++) begin
+  // Set the random seed for this thread.
+  srandom(1);
+
+  for (i = 0; i < num_trials; i++) begin
     command = new;
-    command.randomize();
+    assert(command.randomize());
     gen2drv.put(command);
     @drv2gen;
   end

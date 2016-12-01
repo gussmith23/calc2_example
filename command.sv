@@ -8,7 +8,7 @@ class Command;
   time time_inserted;
   // The number of cycles the driver should wait between issuing the 
   // previous instruction and issuing this instruction.
-  int unsigned cycle_delay;
+  rand int unsigned cycle_delay;
   int unsigned port;
 
   function new(logic [0:3] cmd = 0, logic [0:31] data1 = 0, data2 = 0,
@@ -23,9 +23,16 @@ class Command;
   endfunction : new
 
   constraint legal_command {
-    cmd inside {1,2,5,6};
+    // add/sub, shifts, and example invalid command (7)
+    cmd dist {
+      1 := 1,
+      2 := 1,
+      5 := 5,
+      6 := 5,
+      7 := 1
+    };
     cycle_delay >= 0;
-    cycle_delay <= 100;
+    cycle_delay <= 1000;
   }
 
 endclass : Command
