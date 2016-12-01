@@ -3,8 +3,10 @@ compile the Verilog separately from the SystemVerilog:
 
 ```bash
 vlog *.v
-vlog *.sv
+vlog top.sv
 ```
+
+Note that you only need to compile `top.sv`. Other SystemVerilog files will be included as needed.
 
 Then, run the testbench:
 
